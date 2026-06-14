@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Answer Recorder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#f6f8fb;
+    --surface:#ffffff;
+    --border:#e2e8f0;
+    --text:#1e293b;
+    --text-soft:#64748b;
+    --text-faint:#94a3b8;
+    --reading:#2ba88e;
+    --reading-tint:#e7f7f4;
+    --listening:#4c8bf5;
+    --listening-tint:#eaf2ff;
+    --accent:var(--reading);
+    --accent-tint:var(--reading-tint);
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+    background:var(--bg); color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:40px;
+  }
+  body[data-section="listening"]{
+    --accent:var(--listening);
+    --accent-tint:var(--listening-tint);
+  }
+
+  .topbar{ position:sticky; top:0; z-index:20; background:var(--surface); border-bottom:1px solid var(--border); }
+  .topbar-row{ display:flex; flex-wrap:wrap; align-items:center; gap:14px; max-width:900px; margin:0 auto; padding:14px 20px 10px; }
+  .app-title{ font-size:1.05rem; font-weight:700; margin-right:auto; white-space:nowrap; }
+  .meta-field{ display:flex; flex-direction:column; gap:3px; }
+  .meta-field label{ font-size:.7rem; font-weight:600; color:var(--text-soft); text-transform:uppercase; letter-spacing:.06em; }
+  .meta-field input{ font-family:inherit; font-size:.9rem; padding:7px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); min-width:140px; }
+  .meta-field input:focus{ outline:none; border-color:var(--accent); background:var(--surface); }
+  .export-btn{ font-family:inherit; font-size:.9rem; font-weight:600; padding:10px 18px; border:none; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; transition:filter .15s; white-space:nowrap; }
+  .export-btn:hover{ filter:brightness(.93); }
+
+  .progress-row{ max-width:900px; margin:0 auto; padding:0 20px 10px; display:flex; align-items:center; gap:10px; }
+  .progress-track{ flex:1; height:6px; border-radius:999px; background:var(--border); overflow:hidden; }
+  .progress-fill{ height:100%; background:var(--accent); width:0%; transition:width .25s ease, background .25s ease; }
+  .progress-label{ font-size:.78rem; font-weight:600; color:var(--text-soft); white-space:nowrap; }
+
+  .tabbar{ position:sticky; top:68px; z-index:19; background:var(--surface); border-bottom:1px solid var(--border); }
+  .tab-row{ max-width:900px; margin:0 auto; padding:8px 20px; display:flex; gap:6px; overflow-x:auto; }
+  .tab{ font-family:inherit; cursor:pointer; border:none; background:none; padding:8px 18px; border-radius:8px; font-size:.95rem; font-weight:600; color:var(--text-soft); transition:background .15s, color .15s; white-space:nowrap; }
+  .tab.active{ background:var(--accent-tint); color:var(--accent); }
+
+  .content{ max-width:900px; margin:0 auto; padding:18px 20px 0; }
+  .module-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:16px; }
+  .module-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+  .module-title{ font-size:.95rem; font-weight:600; }
+  .module-badge{ font-size:.74rem; font-weight:600; color:var(--accent); background:var(--accent-tint); border-radius:999px; padding:3px 10px; white-space:nowrap; }
+
+  .q-grid{ display:flex; flex-direction:column; }
+  .q-row{ display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #f1f5f9; }
+  .q-row:last-child{ border-bottom:none; }
+  .q-num{ font-weight:700; font-size:.85rem; color:var(--accent); min-width:32px; flex-shrink:0; }
+  .mcq-options{ display:flex; gap:5px; flex-shrink:0; }
+  .mcq-btn{ width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:var(--bg); font-family:inherit; font-size:.82rem; font-weight:700; color:var(--text-soft); cursor:pointer; transition:.12s; }
+  .mcq-btn:hover{ border-color:var(--accent); color:var(--accent); }
+  .mcq-btn.selected{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .note-input{ font-family:inherit; font-size:.78rem; padding:6px 8px; border:1px solid var(--border); border-radius:8px; background:#fafbfc; color:var(--text-soft); flex:1 1 50px; min-width:0; }
+  .note-input:focus{ outline:none; border-color:var(--accent); background:var(--surface); color:var(--text); }
+  .note-input::placeholder{ color:var(--text-faint); }
+
+  footer{ max-width:900px; margin:0 auto; padding:6px 20px 0; font-size:.78rem; color:var(--text-faint); text-align:center; }
+
+  @media (max-width:520px){
+    .topbar-row{ padding:12px 14px 8px; gap:10px; }
+    .app-title{ width:100%; margin-right:0; }
+    .meta-field input{ min-width:0; width:100%; }
+    .tabbar{ top:0; } .topbar{ position:static; }
+    .progress-row, .tab-row, .content{ padding-left:14px; padding-right:14px; }
+  }
+</style>
+</head>
+<body data-section="reading">
+
+<div class="topbar">
+  <div class="topbar-row">
+    <div class="app-title">📝 Answer Recorder</div>
+    <div class="meta-field">
+      <label for="recordDate">Date</label>
+      <input type="date" id="recordDate">
+    </div>
+    <div class="meta-field">
+      <label for="recorderName">Recorder name</label>
+      <input type="text" id="recorderName" placeholder="Your name">
+    </div>
+    <button class="export-btn" id="exportBtn">Export to Excel</button>
+  </div>
+  <div class="progress-row">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0 / 0 recorded</div>
+  </div>
+</div>
+
+<div class="tabbar">
+  <div class="tab-row" id="sectionTabs"></div>
+</div>
+
+<div class="content" id="content"></div>
+
+<footer>Click a letter again to clear it if a question was skipped.</footer>
+
+<script>
+const TEST_DATA = {
+  reading:   { label: "Reading",   icon: "📖", modules: { "Module 1": 35, "Module 2": 15 } },
+  listening: { label: "Listening", icon: "🎧", modules: { "Module 1": 32, "Module 2": 15 } }
+};
+
+const state = {};
+let totalQuestions = 0;
+for (const secKey in TEST_DATA) {
+  state[secKey] = {};
+  for (const modKey in TEST_DATA[secKey].modules) {
+    const count = TEST_DATA[secKey].modules[modKey];
+    state[secKey][modKey] = Array.from({ length: count }, () => ({ answer: "", note: "" }));
+    totalQuestions += count;
+  }
+}
+
+let currentSection = "reading";
+
+function el(tag, props = {}, children = []) {
+  const node = document.createElement(tag);
+  Object.entries(props).forEach(([k, v]) => {
+    if (k === "class") node.className = v;
+    else if (k === "text") node.textContent = v;
+    else node.setAttribute(k, v);
+  });
+  children.forEach(c => node.appendChild(c));
+  return node;
+}
+
+function badgeId(secKey, modKey) {
+  return "badge-" + secKey + "-" + modKey.replace(/\s+/g, "");
+}
+
+function renderTabs() {
+  const tabs = document.getElementById("sectionTabs");
+  tabs.innerHTML = "";
+  Object.entries(TEST_DATA).forEach(([key, val]) => {
+    const btn = el("button", {
+      class: "tab" + (key === currentSection ? " active" : ""),
+      type: "button",
+      text: val.icon + " " + val.label
+    });
+    btn.addEventListener("click", () => {
+      currentSection = key;
+      document.body.dataset.section = key;
+      renderTabs();
+      renderContent();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    tabs.appendChild(btn);
+  });
+}
+
+function renderContent() {
+  const content = document.getElementById("content");
+  content.innerHTML = "";
+  const modules = TEST_DATA[currentSection].modules;
+
+  Object.entries(modules).forEach(([modKey, count]) => {
+    const card = el("div", { class: "module-card" });
+    card.appendChild(el("div", { class: "module-head" }, [
+      el("div", { class: "module-title", text: modKey }),
+      el("div", { class: "module-badge", id: badgeId(currentSection, modKey) })
+    ]));
+
+    const grid = el("div", { class: "q-grid" });
+    for (let i = 0; i < count; i++) {
+      const cell = state[currentSection][modKey][i];
+      const row = el("div", { class: "q-row" });
+      row.appendChild(el("div", { class: "q-num", text: "Q" + (i + 1) }));
+
+      const opts = el("div", { class: "mcq-options" });
+      ["A", "B", "C", "D"].forEach(letter => {
+        const btn = el("button", {
+          class: "mcq-btn" + (cell.answer === letter ? " selected" : ""),
+          type: "button", text: letter,
+          "aria-pressed": cell.answer === letter ? "true" : "false"
+        });
+        btn.addEventListener("click", () => {
+          const wasSelected = btn.classList.contains("selected");
+          opts.querySelectorAll(".mcq-btn").forEach(b => {
+            b.classList.remove("selected");
+            b.setAttribute("aria-pressed", "false");
+          });
+          cell.answer = wasSelected ? "" : letter;
+          if (!wasSelected) {
+            btn.classList.add("selected");
+            btn.setAttribute("aria-pressed", "true");
+          }
+          updateProgress();
+        });
+        opts.appendChild(btn);
+      });
+      row.appendChild(opts);
+
+      const note = el("input", { class: "note-input", type: "text", placeholder: "Note" });
+      note.value = cell.note;
+      note.addEventListener("input", e => { cell.note = e.target.value; });
+      row.appendChild(note);
+
+      grid.appendChild(row);
+    }
+    card.appendChild(grid);
+    content.appendChild(card);
+  });
+
+  updateProgress();
+}
+
+function updateProgress() {
+  let totalAnswered = 0;
+  for (const secKey in state) {
+    for (const modKey in state[secKey]) {
+      const arr = state[secKey][modKey];
+      const answered = arr.filter(c => c.answer !== "").length;
+      totalAnswered += answered;
+      const badge = document.getElementById(badgeId(secKey, modKey));
+      if (badge) badge.textContent = answered + " / " + arr.length + " answered";
+    }
+  }
+  document.getElementById("progressFill").style.width =
+    (totalQuestions ? (totalAnswered / totalQuestions * 100) : 0) + "%";
+  document.getElementById("progressLabel").textContent = totalAnswered + " / " + totalQuestions + " recorded";
+}
+
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const date = document.getElementById("recordDate").value || "";
+  const name = document.getElementById("recorderName").value || "";
+
+  const rows = [];
+  for (const secKey in TEST_DATA) {
+    const secLabel = TEST_DATA[secKey].label;
+    for (const modKey in TEST_DATA[secKey].modules) {
+      state[secKey][modKey].forEach((cell, idx) => {
+        rows.push({
+          Date: date,
+          "Recorder Name": name,
+          Section: secLabel,
+          Module: modKey,
+          "Question No.": idx + 1,
+          Answer: cell.answer,
+          "Note / Issue": cell.note
+        });
+      });
+    }
+  }
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws["!cols"] = [
+    { wch: 12 }, { wch: 16 }, { wch: 11 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 32 }
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Answers");
+
+  const dateStr = date || new Date().toISOString().slice(0, 10);
+  const nameStr = name ? name.trim().replace(/[^a-zA-Z0-9]+/g, "_") : "recorder";
+  XLSX.writeFile(wb, `Answer_Record_${dateStr}_${nameStr}.xlsx`);
+});
+
+document.getElementById("recordDate").value = new Date().toISOString().slice(0, 10);
+renderTabs();
+renderContent();
+</script>
+</body>
+</html>
