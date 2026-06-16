@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>托福刷题 · 任务列表</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span> 托福刷题</div>
+    <div class="spacer"></div>
+    <a class="btn sm ghost" href="records.html">做题记录</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>选择一个任务开始</h1>
+    <p>每个任务对应一份答案文档，包含阅读、听力与写作三个部分。点击卡片进入答题。</p>
+  </section>
+
+  <div class="toolbar">
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="search" type="text" placeholder="搜索任务名称，例如 3.4 或 A卷" autocomplete="off">
+    </div>
+    <span class="count-pill" id="count"></span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="foot-link">
+    <div>
+      <h3>做题记录</h3>
+      <div class="muted small">查看本浏览器保存的提交记录，并可重新导出 Excel。</div>
+    </div>
+    <a class="btn primary" href="records.html">打开做题记录 →</a>
+  </div>
+</main>
+
+<script src="data/tasks.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/home.js"></script>
+</body>
+</html>

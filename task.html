@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>答题 · 托福刷题</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span> 托福刷题</div>
+    <div class="spacer"></div>
+    <a class="btn sm ghost" href="index.html">← 返回任务列表</a>
+  </div>
+</header>
+
+<main class="wrap" id="app">
+  <section class="hero" style="padding-bottom:0">
+    <h1 id="taskName">…</h1>
+  </section>
+
+  <div class="meta">
+    <div class="field">
+      <label for="student">答题者</label>
+      <select id="student"></select>
+    </div>
+    <div class="field">
+      <label for="date">日期</label>
+      <input id="date" type="date">
+    </div>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <div class="tab active" data-target="reading">Reading 阅读</div>
+    <div class="tab" data-target="listening">Listening 听力</div>
+    <div class="tab" data-target="writing">Writing 写作</div>
+  </nav>
+
+  <section class="section" id="sec-reading"></section>
+  <section class="section hidden" id="sec-listening"></section>
+  <section class="section hidden" id="sec-writing"></section>
+</main>
+
+<div class="submitbar">
+  <div class="wrap">
+    <div class="scorechips" id="scorechips"></div>
+    <div class="spacer"></div>
+    <button class="btn" id="gradeBtn">批改阅读/听力</button>
+    <button class="btn primary" id="submitBtn">提交并导出答案 (Excel)</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="data/tasks.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/task.js"></script>
+</body>
+</html>

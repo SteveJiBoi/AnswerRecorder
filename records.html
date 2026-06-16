@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>做题记录 · 托福刷题</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span> 托福刷题</div>
+    <div class="spacer"></div>
+    <a class="btn sm ghost" href="index.html">← 返回任务列表</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>做题记录</h1>
+    <p>以下为本浏览器保存的提交记录。完整作答内容以每次提交时下载的 Excel 为准。</p>
+  </section>
+
+  <div class="toolbar">
+    <span class="count-pill" id="count"></span>
+    <div class="spacer"></div>
+    <button class="btn" id="exportAll">导出全部记录 (Excel)</button>
+    <button class="btn danger" id="clearAll">清空记录</button>
+  </div>
+
+  <div id="content"></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/records.js"></script>
+</body>
+</html>
